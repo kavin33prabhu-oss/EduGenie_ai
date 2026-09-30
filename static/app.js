@@ -1,0 +1,6 @@
+const task=document.getElementById("task"), input=document.getElementById("input"), go=document.getElementById("go"), status=document.getElementById("status"), output=document.getElementById("output"), result=document.getElementById("result");
+const endpoints={qa:"/qa",explain:"/explain",quiz:"/quiz",summarize:"/summarize",learn:"/learn/recommendations"};
+function esc(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
+go.onclick=async()=>{if(!input.value.trim()){status.textContent="Enter something first.";return}go.disabled=true;status.textContent="Generating...";output.hidden=false;result.innerHTML="";
+try{const r=await fetch(endpoints[task.value],{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:input.value})});const d=await r.json();if(!r.ok)throw Error(d.detail||"Request failed");
+if(Array.isArray(d.result)){result.innerHTML=d.result.map((q,i)=>`<article class="quiz"><b>${i+1}. ${esc(q.question)}</b><ul>${q.options.map(o=>`<li>${esc(o)}</li>`).join("")}</ul><b>Answer: ${esc(q.correct_answer)}</b><p>${esc(q.explanation)}</p></article>`).join("")}else result.innerHTML=`<div class="answer">${esc(d.result)}</div>`;status.textContent="Done."}catch(e){result.innerHTML=`<b>${esc(e.message)}</b>`;status.textContent="Error"}finally{go.disabled=false}};
